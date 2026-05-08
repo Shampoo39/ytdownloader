@@ -4,29 +4,20 @@ import { UrlInput } from "@/components/UrlInput"
 import { VideoPreview } from "@/components/VideoPreview"
 import { FeatureCard } from "@/components/FeatureCard"
 import { cn } from "@/lib/utils"
-
-const MOCK_VIDEO = {
-  title: "Exploring the Breathtaking Landscapes of New Zealand | 4K Cinematic Nature",
-  thumbnail: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&q=80&w=1200",
-  duration: "12:45",
-  views: "1,245,678",
-  qualities: ["1080p", "720p", "480p", "360p"]
-}
+import { useVideoInfo, VideoInfo } from "@/hooks/useVideoInfo"
 
 export default function Index() {
-  const [videoInfo, setVideoInfo] = useState<typeof MOCK_VIDEO | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [videoInfo, setVideoInfo] = useState<VideoInfo | null>(null)
+  const videoInfoMutation = useVideoInfo()
 
-  const handleUrlSubmit = (url: string) => {
-    console.log("Submitting URL:", url)
-    setIsLoading(true)
-    setVideoInfo(null)
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      setVideoInfo(MOCK_VIDEO)
-    }, 1500)
+  const handleUrlSubmit = async (url: string) => {
+    try {
+      setVideoInfo(null)
+      const data = await videoInfoMutation.mutateAsync(url)
+      setVideoInfo({ ...data, url })
+    } catch (error) {
+      console.error("Error fetching video info:", error)
+    }
   }
 
   return (
@@ -56,7 +47,7 @@ export default function Index() {
 
         {/* URL Input */}
         <section className={cn("animate-slide-up")} style={{ animationDelay: "200ms" }}>
-          <UrlInput onSubmit={handleUrlSubmit} isLoading={isLoading} />
+          <UrlInput onSubmit={handleUrlSubmit} isLoading={videoInfoMutation.isPending} />
         </section>
 
         {/* Result or Features */}

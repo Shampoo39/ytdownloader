@@ -1,9 +1,11 @@
 import { useState } from "react"
-import { Clock, Eye, Download } from "lucide-react"
+import { Clock, Eye, Download, Loader2 } from "lucide-react"
 import { Button } from "./ui/button"
 import { cn } from "@/lib/utils"
+import { useDownload } from "@/hooks/useDownload"
 
 interface VideoInfo {
+  url?: string;
   title: string
   thumbnail: string
   duration: string
@@ -17,6 +19,17 @@ interface VideoPreviewProps {
 
 export const VideoPreview = ({ video }: VideoPreviewProps) => {
   const [selectedQuality, setSelectedQuality] = useState(video.qualities[0])
+  const downloadMutation = useDownload()
+
+  const handleDownload = () => {
+    // In a real app, 'video.url' would be passed from Index.tsx
+    // For this prototype, we'll assume it's there or just use a placeholder if missing
+    downloadMutation.mutate({
+      url: video.url || '', 
+      quality: selectedQuality,
+      title: video.title
+    })
+  }
 
   return (
     <div className={cn("glass-card rounded-2xl overflow-hidden animate-slide-up max-w-2xl mx-auto w-full")}>
@@ -67,9 +80,20 @@ export const VideoPreview = ({ video }: VideoPreviewProps) => {
           variant="hero" 
           size="hero" 
           className={cn("w-full group")}
+          onClick={handleDownload}
+          disabled={downloadMutation.isPending}
         >
-          <Download className={cn("w-5 h-5 mr-2 group-hover:translate-y-0.5 transition-transform")} />
-          Download {selectedQuality}
+          {downloadMutation.isPending ? (
+            <>
+              <Loader2 className={cn("w-5 h-5 mr-2 animate-spin")} />
+              {downloadMutation.progress > 0 ? `Downloading ${downloadMutation.progress}%` : 'Processing...'}
+            </>
+          ) : (
+            <>
+              <Download className={cn("w-5 h-5 mr-2 group-hover:translate-y-0.5 transition-transform")} />
+              Download {selectedQuality}
+            </>
+          )}
         </Button>
       </div>
     </div>

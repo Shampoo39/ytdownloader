@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Link2, Search, Loader2 } from "lucide-react"
 import { Button } from "./ui/button"
 import { cn } from "@/lib/utils"
+import { useToast } from "@/hooks/use-toast"
 
 interface UrlInputProps {
   onSubmit: (url: string) => void
@@ -10,11 +11,18 @@ interface UrlInputProps {
 
 export const UrlInput = ({ onSubmit, isLoading }: UrlInputProps) => {
   const [url, setUrl] = useState("")
+  const { toast } = useToast()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (url.trim()) {
       onSubmit(url)
+    } else {
+      toast({
+        title: "Error",
+        description: "Please enter a valid YouTube URL",
+        variant: "destructive"
+      })
     }
   }
 
@@ -24,6 +32,11 @@ export const UrlInput = ({ onSubmit, isLoading }: UrlInputProps) => {
       setUrl(text)
     } catch (err) {
       console.error("Failed to read clipboard:", err)
+      toast({
+        title: "Error",
+        description: "Could not access clipboard",
+        variant: "destructive"
+      })
     }
   }
 
